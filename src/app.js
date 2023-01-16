@@ -21,6 +21,8 @@ const app = express()
 app.use(cors())
 app.use(json())
 
+deletUser()
+
 app.get("/participants", (req, res) => {
 
     db.collection("participants").find().toArray().then(
@@ -166,6 +168,28 @@ app.post("/status", async(req, res) => {
         res.sendStatus(500)
     }
 })
+
+function deletUser(){
+    setInterval(async () => {
+        const user = await db.collection("participants").find().toArray()
+        user.map(
+            async (name) => {
+                if(Date.now - item.lastStatus > 10000) {
+                    await db.collection("participants").deleteOne({name: name.name})
+                    await db.collection("messages").insertOne(
+                        {
+                            from: name.name,
+                            to: "Todos",
+                            text: "sai da sala...",
+                            type: "status",
+                            time: dayjs(Date.now()).format("HH:mm:ss")
+                        }
+                    )
+                }
+            }
+        )
+    }, 15000)
+}
 
 const PORT = 5000
 app.listen(PORT, () => {
