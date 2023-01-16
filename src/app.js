@@ -59,7 +59,7 @@ app.get("/messages", async (req, res) => {
                 return res.status(422).send("Invalid limit")
             }
 
-            lastMessages = messages.reverse().slice(0, limit).reverse()
+            lastMessages = messages.reverse().slice(0, limit)
             return res.send(lastMessages)
         }
 
