@@ -1,6 +1,6 @@
 import express, {json} from "express"
 import cors from "cors"
-import { MongoClient } from "mongodb"
+import { MongoClient, ObjectId } from "mongodb"
 import dotenv from "dotenv"
 import joi from "joi"
 import dayjs from "dayjs"
@@ -21,7 +21,7 @@ const app = express()
 app.use(cors())
 app.use(json())
 
-setInterval(deletUser, 15000)
+deletUser()
 
 app.get("/participants", (req, res) => {
 
@@ -169,22 +169,28 @@ app.post("/status", async(req, res) => {
     }
 })
 
-async function deletUser(){
-    const user = await db.collection("participants").find({}).toArray()
-    user.map((name) => {
-        if(
-            dayjs().format("HHmmss") - dayjs(user.lastStatus).format("HHmmss") > 10
-        ){
-            db.collection("participants").deleteOne({ _id: user._id})
-            db.collection("messages").insertOne({
-                from: name.name,
-                to: "Todos",
-                text: "sai da sala...",
-                type: "status",
-                time: dayjs().format("HH:mm:ss")
+function deletUser(){
+    const tolerance = 15000
+
+    setInterval(async () => {
+        const timeLimit = Date.now() - tolerance
+
+            const user = await db.collection("participants").find({}).toArray()
+
+            user.map((item) => {
+                if(item.lastStatus < timeLimit){
+
+                    db.collection("participants").deleteOne({  _id: ObjectId(item._id) })
+                    db.collection("messages").insertOne({
+                        from: item.name,
+                        to: "Todos",
+                        text: "sai da sala...",
+                        type: "status",
+                        time: dayjs().format("HH:mm:ss")
+                    })
+                }
             })
-        }
-    })
+    }, tolerance)
 }
 
 const PORT = 5000
