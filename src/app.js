@@ -59,7 +59,7 @@ app.get("/messages", async (req, res) => {
                 return res.status(422).send("Invalid limit")
             }
 
-            lastMessages = messages.reverse().slice(0, limit)
+            lastMessages = messages.reverse().slice(0, limit).reverse()
             return res.send(lastMessages)
         }
 
@@ -145,7 +145,6 @@ app.post("/messages", async (req, res) => {
 
         await db.collection("messages").insertOne(newMessage)
         res.sendStatus(201)
-        console.log(newMessage)
     }catch(err) {
         res.sendStatus(500)
     }
