@@ -39,7 +39,7 @@ app.get("/messages", async (req, res) => {
     let lastMessages = []
 
     try{
-        const listMessages = await db.collection("messages").find().toArray()
+        const listMessages = await db.collection("messages").find({ $or: [{ from: user }, { to: user }, { to: "Todos" }] }).toArray()
         const messages = listMessages.filter((message) => {
             if(message.type === 'message' || message.type === 'status'){
                 return true
@@ -59,7 +59,7 @@ app.get("/messages", async (req, res) => {
                 return res.status(422).send("Invalid limit")
             }
 
-            lastMessages = messages.reverse().slice(0, limit).reverse()
+            lastMessages = messages.reverse().slice(0, limit)
             return res.send(lastMessages)
         }
 
