@@ -32,9 +32,8 @@ app.get("/participants", (req, res) => {
 })
 
 app.get("/messages", async (req, res) => {
-    const limit = parseInt(req.query.limit)
-    console.log(limit)
     const { user } = req.headers
+    let limit = 100
     let lastMessages = []
 
     try{
@@ -51,7 +50,13 @@ app.get("/messages", async (req, res) => {
             return false
         })
 
-        if(limit){
+        if(req.query.limit){
+            limit = parseInt(req.query.limit)
+
+            if(limit < 1 || isNaN(limit)){
+                return res.status(422).send("Invalid limit")
+            }
+
             lastMessages = messages.reverse().slice(0, limit).reverse()
             return res.send(lastMessages)
         }
