@@ -32,23 +32,33 @@ app.get("/participants", (req, res) => {
 })
 
 app.get("/messages", async (req, res) => {
-    const { limit } = parseInt(req.query)
+    const limit = parseInt(req.query.limit)
+    console.log(limit)
     const { user } = req.headers
+    let lastMessages = []
 
     try{
         const listMessages = await db.collection("messages").find().toArray()
         const messages = listMessages.filter((message) => {
-            if(message.type === 'message' || message.to === user || message.type === 'status'){
+            if(message.type === 'message' || message.type === 'status'){
                 return true
             }
+
+            if(message.type === 'private_message' && message.from === user || message.to === user){
+                return true
+            }
+
+            return false
         })
 
         if(limit){
-            return res.send(messages.slice(-limit))
+            lastMessages = messages.reverse().slice(0, limit).reverse()
+            return res.send(lastMessages)
         }
 
         res.send(messages)
-    } catch (err) {
+
+        } catch (err) {
         res.sendStatus(500)
     }
 })
