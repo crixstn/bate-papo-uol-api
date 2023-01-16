@@ -31,6 +31,28 @@ app.get("/participants", (req, res) => {
     })
 })
 
+app.get("/messages", async (req, res) => {
+    const { limit } = parseInt(req.query)
+    const { user } = req.headers
+
+    try{
+        const listMessages = await db.collection("messages").find().toArray()
+        const messages = listMessages.filter((message) => {
+            if(message.type === 'message' || message.to === user || message.type === 'status'){
+                return true
+            }
+        })
+
+        if(limit){
+            return res.send(messages.slice(-limit))
+        }
+
+        res.send(messages)
+    } catch (err) {
+        res.sendStatus(500)
+    }
+})
+
 app.post("/participants", async (req, res) => {
     const user = req.body
 
