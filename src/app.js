@@ -21,7 +21,7 @@ const app = express()
 app.use(cors())
 app.use(json())
 
-deletUser()
+setInterval(deletUser, 15000)
 
 app.get("/participants", (req, res) => {
 
@@ -169,26 +169,22 @@ app.post("/status", async(req, res) => {
     }
 })
 
-function deletUser(){
-    setInterval(async () => {
-        const user = await db.collection("participants").find().toArray()
-        user.map(
-            async (name) => {
-                if(Date.now - item.lastStatus > 10000) {
-                    await db.collection("participants").deleteOne({name: name.name})
-                    await db.collection("messages").insertOne(
-                        {
-                            from: name.name,
-                            to: "Todos",
-                            text: "sai da sala...",
-                            type: "status",
-                            time: dayjs(Date.now()).format("HH:mm:ss")
-                        }
-                    )
-                }
-            }
-        )
-    }, 15000)
+async function deletUser(){
+    const user = await db.collection("participants").find({}).toArray()
+    user.map((name) => {
+        if(
+            dayjs().format("HHmmss") - dayjs(user.lastStatus).format("HHmmss") > 10
+        ){
+            db.collection("participants").deleteOne({ _id: user._id})
+            db.collection("messages").insertOne({
+                from: name.name,
+                to: "Todos",
+                text: "sai da sala...",
+                type: "status",
+                time: dayjs().format("HH:mm:ss")
+            })
+        }
+    })
 }
 
 const PORT = 5000
