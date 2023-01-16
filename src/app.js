@@ -13,7 +13,7 @@ try {
     await mongoClient.connect()
     db = mongoClient.db()
 } catch (error) {
-    console.log(`:( Ocorreu um erro: ${error}`)
+    console.log(`:( Error: ${error}`)
 }
 
 const app = express()
@@ -36,8 +36,7 @@ app.post("/participants", async (req, res) => {
 
         const existUser = await db.collection("participants").findOne({name: user.name })
         if(existUser){
-            return res.status(400).send("This user already exist")
-            console.log(existUser)
+            return res.status(409).send("This user already exist")
         }
 
         const newUser = {
@@ -48,9 +47,18 @@ app.post("/participants", async (req, res) => {
         await db.collection("participants").insertOne(newUser)
         res.sendStatus(201)
     }catch (err){
-        console.log(err)
         res.sendStatus(500)
     }
+})
+
+app.get("/participants", (req, res) => {
+
+    db.collection("participants").find().toArray().then(
+        datas => {
+            return res.send(datas) 
+    }).catch((err) => {
+        res.status(500).send(`:( Error: ${err}`)
+    })
 })
 
 const PORT = 5000
